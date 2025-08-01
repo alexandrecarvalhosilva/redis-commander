@@ -3,6 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis-commander
+  namespace: redis
   annotations:
     # Tell Kubernetes to apply the AppArmor or SecComp profile "runtime/default". (whatever is used)
     # Note that this is ignored if the Kubernetes node is not running version 1.4 or greater.
@@ -22,13 +23,19 @@ spec:
         tier: backend
     spec:
       automountServiceAccountToken: false
+      nodeSelector:
+        node-role: infra
+      tolerations:
+        - key: node-role.kubernetes.io/infra
+          operator: Exists
+          effect: NoSchedule      
       containers:
         - name: redis-commander
           image: ghcr.io/joeferner/redis-commander
           imagePullPolicy: Always
           env:
             - name: REDIS_HOSTS
-              value: "instance1:redis:6379"
+              value: "salsaomni004-stagind-redis:redis:6379"
             - name: K8S_SIGTERM
               value: "1"
           ports:
